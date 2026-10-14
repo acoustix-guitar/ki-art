@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wolfram Fiedler KI Art</title>
+    <style>
+        /* ==========================================================================
+           1. BASIS-STILE & VARIABLEN (Hell, schlicht, elegant, barrierefrei)
+           ========================================================================== */
+        :root {
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --text-color: #222222;
+            --text-muted: #666666;
+            --accent-color: #333333;
+            --accent-hover: #000000;
+            --border-color: #cccccc;
+            --focus-ring: #005fcc;
+            --font-size-base: 18px;
+            --font-size-large: 24px;
+            --font-size-xl: 36px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* Barrierefreiheit: Fokus-Indikatoren */
+        a:focus, button:focus, select:focus, input:focus {
+            outline: 3px solid var(--focus-ring);
+            outline-offset: 2px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+        }
+
+        /* ==========================================================================
+           2. KATEGORIEN-NAVIGATION
+           ========================================================================== */
+        .category-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .category-btn {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border-color: var(--accent-color);
+        }
+
+        /* ==========================================================================
+           3. HAUPT-GALERIE BEREICH
+           ========================================================================== */
+        .gallery-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .main-viewer {
+            position: relative;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .main-image {
+            max-width: 100%;
+            height: 500px;
+            object-fit: contain;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #eee;
+        }
+
+        .image-info {
+            font-size: var(--font-size-large);
+            font-weight: 600;
+            margin-top: 10px;
+            color: var(--text-color);
+        }
+
+        /* Galerie-Steuerung (Vor, Zurück, Play, Fullscreen) */
+        .gallery-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 8px 16px;
+            font-size: var(--font-size-base);
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        /* ==========================================================================
+           4. THUMBNAILS PANEL (Seitwärts scrollbar)
+           ========================================================================== */
+        .thumbnails-wrapper {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .thumbnail {
+            width: 100px;
+            height: 70px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 3px solid transparent;
+            border-radius: 4px;
+            flex-shrink: 0;
+            opacity: 0.7;
+            transition: opacity 0.2s, border-color 0.2s;
+        }
+
+        .thumbnail:hover {
+            opacity: 1;
+        }
+
+        .thumbnail.active {
+            border-color: var(--focus-ring);
+            opacity: 1;
+        }
+
+        /* ==========================================================================
+           5. AUDIO PLAYER BEREICH
+           ========================================================================== */
+        .audio-player-container {
+            max-width: 1000px;
+            margin: 30px auto 0 auto;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .audio-title {
+            font-size: var(--font-size-large);
+            font-weight: 600;
+        }
+
+        .audio-controls-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            padding: 8px;
+            font-size: var(--font-size-base);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            flex-grow: 1;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ==========================================================================
+           6. LIGHTBOX / POPUP (Grossanzeige Bild)
+           ========================================================================== */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .lightbox-modal.open {
+            display: flex;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 85%;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: #ffffff;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Wolfram Fiedler KI Art</h1>
+        <p>Wähle eine Kategorie, um die Bildergalerie zu starten.</p>
+    </header>
+
+    <!-- Kategorien-Auswahl -->
+    <nav class="category-nav" aria-label="Kategorien">
+        <button class="category-btn active" onclick="changeCategory('Personen')">Personen</button>
+        <button class="category-btn" onclick="changeCategory('Musik')">Musik</button>
+        <button class="category-btn" onclick="changeCategory('Landschaften')">Landschaften</button>
+        <button class="category-btn" onclick="changeCategory('Kunst')">Kunst</button>
+        <button class="category-btn" onclick="changeCategory('Allerlei')">Allerlei</button>
+    </nav>
+
+    <!-- Haupt-Galerie -->
+    <main class="gallery-container" id="galleryApp">
+        <div class="main-viewer">
+            <!-- Hauptbild mit Klick-Event für Grossanzeige -->
+            <img id="mainImage" class="main-image" src="" alt="Aktuelles KI-Kunstwerk" onclick="openLightbox()">
+            <div id="imageName" class="image-info">Dateiname.jpg</div>
+        </div>
+
+        <!-- Galerie Steuerelemente -->
+        <div class="gallery-controls">
+            <button class="ctrl-btn" onclick="prevImage()" aria-label="Vorheriges Bild">Zurück</button>
+            <button class="ctrl-btn" id="playPauseBtn" onclick="toggleSlideshow()" aria-label="Slideshow starten">Play Slideshow</button>
+            <button class="ctrl-btn" onclick="nextImage()" aria-label="Nächstes Bild">Vor</button>
+            <button class="ctrl-btn" onclick="toggleFullScreen()" aria-label="Vollbildmodus">Vollbild</button>
+        </div>
+
+        <!-- Thumbnails Panel -->
+        <div class="thumbnails-wrapper" id="thumbnailsContainer" aria-label="Vorschaubilder">
+            <!-- Dynamisch generierte Vorschaubilder -->
+        </div>
+    </main>
+
+    <!-- Integrierter Audioplayer -->
+    <section class="audio-player-container" aria-label="Musik-Player">
+        <div class="audio-title">Audio Begleitung</div>
+        <div class="audio-controls-row">
+            <select id="audioSelect" onchange="loadAudio()" aria-label="Musikstück auswählen">
+                <option value="">-- Musikstück wählen --</option>
+                <!-- Beispiel-Einträge: Passe diese an Dateien im Ordner /audio/ an -->
+                <option value="audio/song_01.mp3">Letters In The Rain</option>
+                <option value="audio/song_02.mp3">Sunday Window Seat</option>
+<option value="audio/song_03.mp3">Kitchen Window Light</option>
+<option value="audio/song_04.mp3">Before The Kettle Boils</option>
+<option value="audio/song_05.mp3">Morning After The Rain</option>
+            </select>
+            <button class="ctrl-btn" onclick="playAudio()">Play</button>
+            <button class="ctrl-btn" onclick="pauseAudio()">Pause</button>
+            <button class="ctrl-btn" onclick="stopAudio()">Stop</button>
+            <div class="volume-control">
+                <label for="volumeSlider">Lautstärke:</label>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" onchange="setVolume(this.value)">
+            </div>
+        </div>
+        <!-- Unsichtbares Audio-Element -->
+        <audio id="bgAudio" preload="none"></audio>
+    </section>
+
+    <!-- Lightbox / Popup für Grossanzeige -->
+    <div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox()" role="dialog" aria-modal="true">
+        <button class="lightbox-close" onclick="closeLightbox()" aria-label="Schliessen">&times;</button>
+        <img id="lightboxImage" class="lightbox-content" src="" alt="Grossansicht des Kunstwerks">
+    </div>
+
+    <!-- ==========================================================================
+       7. JAVASCRIPT LOGIK
+       ========================================================================== -->
+    <script>
+        /* 
+           BILD-DATENBANK KONFIGURATION
+           Hier trägst du die Dateinamen deiner Bilder ein, die im jeweiligen 
+           Unterordner unter images/[Kategorie]/ liegen.
+        */
+        const galleryData = {
+            Personen: [
+                "wolfi.jpeg",
+                "portrait_2.jpg",
+                "mensch_3.jpg"
+            ],
+            Musik: [
+                "guitar_01.png",
+                "woli-sommer-1.png",
+ 		"sweet.png",
+ 		"slade.png",
+ 		"trex.png"
+            ],
+            Landschaften: [
+		"loerrach.png",
+                "berg_1.jpg",
+                "sonnenuntergang_2.jpg",
+                "wald_3.jpg"
+            ],
+            Kunst: [
+                "abstrak_1.jpg",
+                "surreal_2.jpg"
+            ],
+            Allerlei: [
+                "crayon_guitar.png",
+                "cozy_guitar.png"
+            ]
+        };
+
+        let currentCategory = "Personen";
+        let currentIndex = 0;
+        let slideshowInterval = null;
+        const isPlaying = false;
+
+        // Referenzen auf DOM-Elemente
+        const mainImage = document.getElementById("mainImage");
+        const imageName = document.getElementById("imageName");
+        const thumbnailsContainer = document.getElementById("thumbnailsContainer");
+        const playPauseBtn = document.getElementById("playPauseBtn");
+        const lightboxModal = document.getElementById("lightboxModal");
+        const lightboxImage = document.getElementById("lightboxImage");
+        const bgAudio = document.getElementById("bgAudio");
+        const audioSelect = document.getElementById("audioSelect");
+
+        /* Initialisierung beim Laden der Seite */
+        window.addEventListener("DOMContentLoaded", () => {
+            loadCategory(currentCategory);
+        });
+
+        /* Kategorie wechseln */
+        function changeCategory(category) {
+            currentCategory = category;
+            currentIndex = 0;
+            stopSlideshow();
+
+            // Aktiven Button in der Navigation aktualisieren
+            document.querySelectorAll(".category-btn").forEach(btn => {
+                btn.classList.remove("active");
+                if(btn.textContent.trim() === category) {
+                    btn.classList.add("active");
+                }
+            });
+
+            loadCategory(category);
+        }
+
+        /* Bilder der Kategorie laden und UI aufbauen */
+        function loadCategory(category) {
+            const images = galleryData[category];
+            
+            // Fall, falls Kategorie leer ist
+            if (!images || images.length === 0) {
+                mainImage.src = "";
+                mainImage.alt = "Keine Bilder in dieser Kategorie";
+                imageName.textContent = "Keine Bilder verfügbar";
+                thumbnailsContainer.innerHTML = "<p>Keine Bilder im Ordner hinterlegt.</p>";
+                return;
+            }
+
+            renderThumbnails(images);
+            updateMainImage();
+        }
+
+        /* Vorschaubilder (Thumbnails) generieren */
+        function renderThumbnails(images) {
+            thumbnailsContainer.innerHTML = "";
+            images.forEach((imgName, index) => {
+                const imgPath = `images/${currentCategory}/${imgName}`;
+                const thumb = document.createElement("img");
+                thumb.src = imgPath;
+                thumb.alt = `Vorschaubild ${imgName}`;
+                thumb.className = `thumbnail ${index === currentIndex ? 'active' : ''}`;
+                thumb.tabIndex = 0; // Tastaturnavigation
+                thumb.onclick = () => {
+                    currentIndex = index;
+                    updateMainImage();
+                };
+                // Auch per Enter-Taste bedienbar machen
+                thumb.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        currentIndex = index;
+                        updateMainImage();
+                    }
+                };
+                thumbnailsContainer.appendChild(thumb);
+            });
+        }
+
+        /* Hauptbild und Text aktualisieren */
+        function updateMainImage() {
+            const images = galleryData[currentCategory];
+            if (!images || images.length === 0) return;
+
+            const imgName = images[currentIndex];
+            const imgPath = `images/${currentCategory}/${imgName}`;
+
+            mainImage.src = imgPath;
+            mainImage.alt = `Kunstwerk: ${imgName}`;
+            imageName.textContent = imgName;
+
+            // Thumbnail Aktiv-Status anpassen
+            const thumbs = thumbnailsContainer.querySelectorAll(".thumbnail");
+            thumbs.forEach((thumb, idx) => {
+                if (idx === currentIndex) {
+                    thumb.classList.add("active");
+                    thumb.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                } else {
+                    thumb.classList.remove("active");
+                }
+            });
+        }
+
+        /* Nächstes Bild anzeigen */
+        function nextImage() {
+            const images = galleryData[currentCategory];
+            currentIndex = (currentIndex + 1) % images.length;
+            updateMainImage();
+        }
+
+        /* Vorheriges Bild anzeigen */
+        function prevImage() {
+            const images = galleryData[currentCategory];
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateMainImage();
+        }
+
+        /* Slideshow Steuerung (Play / Pause) */
+        function toggleSlideshow() {
+            if (slideshowInterval) {
+                stopSlideshow();
+            } else {
+                startSlideshow();
+            }
+        }
+
+        function startSlideshow() {
+            slideshowInterval = setInterval(nextImage, 3000); // Wechsel alle 3 Sekunden
+            playPauseBtn.textContent = "Pause Slideshow";
+            playPauseBtn.setAttribute("aria-label", "Slideshow anhalten");
+        }
+
+        function stopSlideshow() {
+            clearInterval(slideshowInterval);
+            slideshowInterval = null;
+            playPauseBtn.textContent = "Play Slideshow";
+            playPauseBtn.setAttribute("aria-label", "Slideshow starten");
+        }
+
+        /* Fullscreen Modus umschalten */
+        function toggleFullScreen() {
+            const appElement = document.getElementById("galleryApp");
+            if (!document.fullscreenElement) {
+                appElement.requestFullscreen().catch(err => {
+                    alert(`Fehler beim Aktivieren des Vollbildmodus: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        /* Lightbox / Grossansicht öffnen und schliessen */
+        function openLightbox() {
+            const images = galleryData[currentCategory];
+            if (!images || images.length === 0) return;
+            lightboxImage.src = `images/${currentCategory}/${images[currentIndex]}`;
+            lightboxModal.classList.add("open");
+        }
+
+        function closeLightbox() {
+            lightboxModal.classList.remove("open");
+        }
+
+        /* ==========================================================================
+           AUDIO PLAYER FUNKTIONEN
+           ========================================================================== */
+        function loadAudio() {
+            const selectedFile = audioSelect.value;
+            if (selectedFile) {
+                bgAudio.src = selectedFile;
+                playAudio();
+            } else {
+                stopAudio();
+            }
+        }
+
+        function playAudio() {
+            if (bgAudio.src) {
+                bgAudio.play().catch(e => console.log("Audio-Wiedergabe erfordert Benutzerinteraktion."));
+            } else if(audioSelect.options.length > 1) {
+                audioSelect.selectedIndex = 1;
+                loadAudio();
+            }
+        }
+
+        function pauseAudio() {
+            bgAudio.pause();
+        }
+
+        function stopAudio() {
+            bgAudio.pause();
+            bgAudio.currentTime = 0;
+        }
+
+        function setVolume(val) {
+            bgAudio.volume = val;
+        }
+    </script>
+</body>
+</html>
